@@ -1,19 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, ImageBackground, View } from 'react-native';
+import { Alert, FlatList, ImageBackground, View } from 'react-native';
 import { styles } from '../themes/Styles';
 
 
 
 import { onValue, ref, remove, set, update } from "firebase/database";
-import { Button, Card, FAB, IconButton, Modal, Paragraph, Portal, Text, TextInput, Title, } from 'react-native-paper';
-import { auth, db } from '../config/Configs';
-import { onAuthStateChanged } from 'firebase/auth';
+import { Button, Card, FAB, IconButton, MD3Colors, Modal, Paragraph, Portal, Text, TextInput, Title, } from 'react-native-paper';
+import {  auth, db } from '../config/Configs';
+
+import { useNavigation } from '@react-navigation/native';
+import { getAuth, signOut } from 'firebase/auth';
 
 
 
-export default function WelcomeScreen() {
 
- 
+
+export default function WelcomeScreen({ navigation }: any) {
+
+  function cerrarSesion() {
+    Alert.alert('Advertencia', '¿Deseas cerrar la sesión?',
+      [{ text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Aceptar', onPress: () => {
+          const auth = getAuth();
+          signOut(auth).then(() => {
+            
+              Alert.alert('Sesión Terminada');
+              navigation.navigate('Login');
+            })
+            .catch((error) => {
+              console.log(error)
+            });
+        },
+      },],
+      { cancelable: false }
+    );
+  }
 
   const [codigo, setCodigo] = useState('')
   const [nombre, setNombre] = useState('')
@@ -24,11 +46,14 @@ export default function WelcomeScreen() {
 
   const [lista, setLista] = useState([])
 
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [modalType, setModalType] = useState('');
 
 
 
 
 
+//mostar la lista objetos de base de datos
   useEffect(() => {
     leer();
   }, []);
@@ -43,7 +68,7 @@ export default function WelcomeScreen() {
       description: descripcion
 
     })
-
+// limpiar los campos
     setCodigo('')
     setNombre('')
     setImageUrl('')
@@ -76,12 +101,20 @@ export default function WelcomeScreen() {
     update(ref(db, 'juego/' + codigo), {
       name: nombre,
       description: descripcion
-
     })
+    //limpia la lista para actulizar 
+    setModoEdicion(false);
+    setCodigo('');
+    setNombre('');
+    setImageUrl('');
+    setDescripcion('');
+    setModalVisible(false);
   }
   //------eliminar----//
   function eliminar() {
     remove(ref(db, 'juego/' + codigo))
+    setCodigo('');
+    setModalVisible(false);
 
   }
   type juego = {
@@ -131,16 +164,31 @@ export default function WelcomeScreen() {
                   numberOfLines={8}
                 />
 
-                <View >
-                  <Button
-
-                    mode="contained" onPress={() => (guardar(codigo, nombre, imageUrl, descripcion))} > Guardar</Button>
-
-                  <Button mode="contained" onPress={() => leer()} > Leer</Button>
+                <View style={styles.buttonContainer}>
+                <Button icon="content-save" mode="contained" onPress={modoEdicion ? actualizar : () => guardar(codigo, nombre, imageUrl, descripcion)} style={styles.button}>Guardar</Button>
+                  <Button icon="book-open" mode="contained" onPress={leer} style={styles.button} > </Button>
+                  <Button icon="close" mode="contained" onPress={() => setModalVisible(false)} style={styles.button}>Cancelar</Button>
+                  {/*<Button icon="pencil" mode="contained" onPress={actualizar} style={styles.button}> </Button>
+                  <Button icon="trash-can" mode="contained" onPress={eliminar}style={styles.button}> </Button>*/}
                 </View>
+
               </View>
             </View>
           </Modal>
+          {modalType === 'eliminar' && (
+            <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
+              <View style={styles.modalContent}>
+                <Text variant="headlineSmall">Eliminar Juego</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput placeholder='Codigo' onChangeText={text => setCodigo(text)} value={codigo} style={styles.inputs} />
+                  <View style={styles.buttonContainer}>
+                    <Button icon="trash-can" mode="contained" onPress={eliminar} style={styles.button}>Eliminar</Button>
+                    <Button icon="close" mode="contained" onPress={() => setModalVisible(false)} style={styles.button}>Cancelar</Button>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          )}
         </Portal>
 
         <FlatList
@@ -152,21 +200,43 @@ export default function WelcomeScreen() {
                 <Title>{item.name}</Title>
                 <Paragraph>{item.description}</Paragraph>
               </Card.Content>
-              <View >
-              <IconButton icon="lead-pencil"  onPress={() => console.log('Pressed')} size={20}  style={styles.iconButton} />
-                <IconButton icon="delete" size={20} onPress={() => console.log('Pressed')} style={styles.iconButton} />
-            
+              <View style={{flexDirection:'row'}}>
+              <IconButton
+                
+                icon="pencil"
+                iconColor={MD3Colors.tertiary50}
+                onPress={() => {
+                  setCodigo(item.key);
+                  setNombre(item.name);
+                  setImageUrl(item.picture);
+                  setDescripcion(item.description);
+                  setModalVisible(true);
+                  setModoEdicion(true);
+                }}
+              />
+             <IconButton
+              iconColor={MD3Colors.error50}
+                icon="trash-can"
+                onPress={() => {
+                  setModalType('eliminar');
+                  setModalVisible(true);
+                  setCodigo(item.key);
+                }}
+              />
               </View>
+              
             </Card>
           )}
         />
         <FAB
           icon="plus"
           style={styles.fab}
-          onPress={() => setModalVisible(true)}
-        />
+          onPress={() => setModalVisible(true)}/>
 
       </View>
+      <IconButton  icon="logout" iconColor={MD3Colors.tertiary50} size={20} onPress={cerrarSesion}/>
+   
+      
     </ImageBackground>
   )
 }

@@ -17,6 +17,7 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
   storageBucket: "complexivo-947f4.appspot.com",
   messagingSenderId: "707573369398",
   appId: "1:707573369398:web:4ff385561a75926441e697"
+
 };
 
 // Initialize Firebase

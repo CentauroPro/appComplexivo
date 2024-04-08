@@ -6,9 +6,6 @@ import RegistroScreen from '../screens/RegistroScreen';
 import LoginScreen from '../screens/LoginScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import IndexScreen from '../screens/IndexScreen';
-import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../config/Configs';
 
 
 
@@ -34,12 +31,11 @@ const Stack = createStackNavigator();
 function MyStack() {
   return (
     <Stack.Navigator>
-      
+
       <Stack.Screen name="Index" component={IndexScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Registro" component={RegistroScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Lista de Juegos" component={WelcomeScreen}initialParams={{ isAuthenticated: false }} />
-      
+      <Stack.Screen name="Lista de Juegos" component={WelcomeScreen} />
 
     </Stack.Navigator>
   );

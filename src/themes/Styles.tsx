@@ -82,6 +82,14 @@ export const styles = StyleSheet.create({
   },
   iconButton: {
     marginHorizontal: 4,
-  }
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  button: {
+    width: '20%', // Ajusta el ancho de cada botón según sea necesario
+  },
 }
 )
